@@ -43,17 +43,28 @@ document.body.appendChild(graffitiOverlayElement);
 
 // ─── Section B: Utility Functions ───────────────────────────────────────
 
-/**
- * Randomly picks the word of the day based on current date.
- */
-function getWordOfTheDay(wordList) {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
-    const day = now.getDate();
-    const seed = year * 10000 + (month + 1) * 100 + day;
-    const randomIndex = seed % wordList.length;
-    return wordList[randomIndex].toUpperCase();
+async function fetchWordOfTheDay() {
+    try {
+        const res = await fetch("/.netlify/functions/getWordOfTheDay");
+        if (!res.ok) throw new Error("Failed to fetch daily word");
+        const { data } = await res.json(); // data = base64(IV + ciphertext)
+        const plaintext = await decryptWord(data);
+        return plaintext; // e.g. "BIRD"
+    } catch (err) {
+        console.error("Error fetching or decrypting word:", err);
+        // Fallback: pick a random word client-side if needed:
+        return FOUR_LETTER_WORDS[
+            Math.floor(Math.random() * FOUR_LETTER_WORDS.length)
+        ];
+    }
+}
+function base64ToUint8Array(base64) {
+    const raw = atob(base64);
+    const arr = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; ++i) {
+        arr[i] = raw.charCodeAt(i);
+    }
+    return arr;
 }
 
 /**
@@ -242,8 +253,8 @@ async function handleGuess() {
 /**
  * Initialize/reset the game board for a new round.
  */
-function initGame() {
-    targetWord = getWordOfTheDay(FOUR_LETTER_WORDS);
+async function initGame() {
+    targetWord = await fetchWordOfTheDay();
     currentAttempts = 0;
     gameOver = false;
     guessesHistoryElement.innerHTML = "";
@@ -359,6 +370,48 @@ async function fetchAndRenderLeaderboard() {
     }
 }
 
+async function decryptWord(payloadBase64) {
+    // 1) Convert the combined (IV + ciphertext) from base64 → Uint8Array
+    const combined = base64ToUint8Array(payloadBase64);
+    // 2) Extract the first 16 bytes as IV, the rest as ciphertext
+    const iv = combined.slice(0, 16);
+    const ciphertext = combined.slice(16);
+
+    // 3) Convert the base64 secret key into a CryptoKey
+    const base64Key = "sZWs+NciBq/DOwBm+csybg22zeVZTxTmatVHs+0cats=";
+    // ──────────────────────────────────────────────────────────────────────────────
+    //    IMPORTANT: Replace the string above with your actual WORD_SECRET_KEY (base64).
+    //    e.g. const base64Key = "wJ8oX+KM2z9Gh+Yt2xJzI4eQfM3KTrhXH+VZ4a9M5g=";
+    // ──────────────────────────────────────────────────────────────────────────────
+
+    const rawKeyBytes = base64ToUint8Array(base64Key);
+    const cryptoKey = await window.crypto.subtle.importKey(
+        "raw",
+        rawKeyBytes.buffer,
+        { name: "AES-CBC", length: 256 },
+        false,
+        ["decrypt"]
+    );
+
+    // 4) Decrypt using WebCrypto:
+    let decryptedBuffer;
+    try {
+        decryptedBuffer = await window.crypto.subtle.decrypt(
+            { name: "AES-CBC", iv: iv.buffer },
+            cryptoKey,
+            ciphertext.buffer
+        );
+    } catch (err) {
+        console.error("Decryption failed:", err);
+        throw new Error("Cannot decrypt word");
+    }
+
+    // 5) Convert ArrayBuffer → UTF-8 string
+    const decoder = new TextDecoder("utf-8");
+    return decoder.decode(decryptedBuffer);
+}
+
+
 // ─── Section D: Splash Screen Logic ────────────────────────────────────
 
 /**
@@ -393,7 +446,7 @@ function handleSplashScreen() {
  */
 async function afterSplashInit() {
     await fetchUsername();
-    initGame();
+    await initGame();
     fetchAndRenderLeaderboard();
 }
 
