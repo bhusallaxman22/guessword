@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GUESSWORD</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Permanent+Marker&display=swap"
+        rel="stylesheet" />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+    <!-- 1) Splash Screen Overlay -->
+    <div id="splash-screen">
+        <div class="splash-content">
+            <h1>Welcome to GUESSWORD</h1>
+            <button id="start-button" class="btn btn-primary">Start Game</button>
+        </div>
+    </div>
+
+    <!-- 2) Main Game Container -->
+    <div class="game-container" style="display: none;">
+        <h1 class="header-title">GUESSWORD</h1>
+
+        <button type="button" class="btn btn-outline-primary instructions-button rounded-pill" data-bs-toggle="modal"
+            data-bs-target="#instructionsModal">
+            How to Play
+        </button>
+
+        <div class="guess-input-submission-area">
+            <div class="guess-input-area">
+                <input type="text" class="form-control letter-input-box" id="letter1" maxlength="1"
+                    aria-label="First letter" />
+                <input type="text" class="form-control letter-input-box" id="letter2" maxlength="1"
+                    aria-label="Second letter" />
+                <input type="text" class="form-control letter-input-box" id="letter3" maxlength="1"
+                    aria-label="Third letter" />
+                <input type="text" class="form-control letter-input-box" id="letter4" maxlength="1"
+                    aria-label="Fourth letter" />
+            </div>
+            <button id="submitGuessMobileButton" class="btn btn-primary arrow-submit-button" type="button"
+                aria-label="Submit guess">
+                ➔
+            </button>
+        </div>
+
+        <div class="guesses-history" id="guessesHistory">
+            <!-- Guesses appended via JS -->
+        </div>
+        <p class="mt-1 attempts-text">
+            <span id="attemptsLeft">8</span> attempts remaining.
+        </p>
+
+        <div id="messageArea" class="message-area"></div>
+
+        <button id="newGameButton" class="btn new-game-button mt-3 rounded-pill" style="display: none;">
+            Play Again (Same Word)
+        </button>
+
+        <!-- 3) Leaderboard Section -->
+        <hr />
+        <h2 class="mt-4">Leaderboard (Top 10)</h2>
+        <div id="leaderboard" class="mb-5">
+            <!-- JS will populate a simple table here -->
+            <p>Loading leaderboard…</p>
+        </div>
+    </div>
+
+    <!-- Instructions Modal (unchanged) -->
+    <div class="modal fade" id="instructionsModal" tabindex="-1" aria-labelledby="instructionsModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="instructionsModalLabel">
+                        How to Play GUESSWORD
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        Find the hidden <strong>4-letter word</strong> in
+                        <strong>8 tries</strong>. A new word appears daily!
+                    </p>
+                    <p>After each guess, you'll see two scores:</p>
+                    <ul>
+                        <li>
+                            <span class="example-score-g" style="margin-right: 5px;">G</span>
+                            Number of letters in the <strong>correct spot</strong>.
+                        </li>
+                        <li>
+                            <span class="example-score-y" style="margin-right: 5px;">Y</span>
+                            Number of letters present in the word but in the
+                            <strong>wrong spot</strong>.
+                        </li>
+                    </ul>
+                    <hr />
+                    <h6>Examples:</h6>
+                    <div class="mb-3">
+                        <p>
+                            Guess:
+                            <strong class="example-word d-inline-flex align-items-center">
+                                <span class="example-letter-box">W</span><span class="example-letter-box">O</span><span
+                                    class="example-letter-box">R</span><span class="example-letter-box">K</span>
+                            </strong>
+                            Score:
+                            <span class="example-score-g">2</span>
+                            <span class="example-score-y">1</span>
+                        </p>
+                        <small class="d-block text-muted">
+                            This means: 2 letters are correct and in the right spot. 1
+                            more letter is in the word but in a different spot.
+                        </small>
+                    </div>
+                    <div class="mb-3">
+                        <p>
+                            Guess:
+                            <strong class="example-word d-inline-flex align-items-center">
+                                <span class="example-letter-box">H</span><span class="example-letter-box">E</span><span
+                                    class="example-letter-box">L</span><span class="example-letter-box">P</span>
+                            </strong>
+                            Score:
+                            <span class="example-score-g">1</span>
+                            <span class="example-score-y">0</span>
+                        </p>
+                        <small class="d-block text-muted">
+                            This means: 1 letter is correct and in the right spot. No
+                            other guessed letters are in the word.
+                        </small>
+                    </div>
+                    <div>
+                        <p>
+                            Guess:
+                            <strong class="example-word d-inline-flex align-items-center">
+                                <span class="example-letter-box">B</span><span class="example-letter-box">U</span><span
+                                    class="example-letter-box">R</span><span class="example-letter-box">P</span>
+                            </strong>
+                            Score:
+                            <span class="example-score-g">0</span>
+                            <span class="example-score-y">0</span>
+                        </p>
+                        <small class="d-block text-muted">
+                            This means: None of the letters from your guess are in the
+                            hidden word.
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">
+                        Got it!
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="app.js"></script>
+</body>
+
+</html>

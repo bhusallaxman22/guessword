@@ -1,0 +1,7 @@
+[build]
+  functions = "functions"
+  publish   = "public"
+
+[build.environment]
+  # Make sure to set your real MongoDB connection string here (e.g. via Netlify UI or CLI).
+  MONGODB_URI = "YOUR_MONGODB_CONNECTION_STRING_HERE"

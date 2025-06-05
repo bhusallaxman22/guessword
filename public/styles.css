@@ -1,0 +1,478 @@
+body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+    color: #4a5568;
+    margin: 0;
+}
+
+/* Class to prevent body scroll during animation */
+.no-scroll {
+    overflow: hidden;
+}
+
+.game-container {
+    background-color: rgba(255, 255, 255, 0.97);
+    /* Slightly transparent white */
+    backdrop-filter: blur(8px);
+    /* Frosted glass effect */
+    padding: 25px 30px;
+    /* Increased padding */
+    border-radius: 16px;
+    /* More rounded corners */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    /* Softer, deeper shadow */
+    width: 100%;
+    max-width: 480px;
+    /* Slightly adjusted max-width */
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    /* For potential in-container popups if not full-screen */
+    z-index: 1;
+    /* Ensure game container is above body but below overlay */
+}
+
+.header-title {
+    color: #32325d;
+    /* Darker, sophisticated blue-purple */
+    margin-bottom: 25px;
+    font-weight: 700;
+    /* Bolder title */
+    font-size: 2.25rem;
+    /* Larger title */
+}
+
+.instructions-button {
+    margin-bottom: 25px;
+    background-color: transparent;
+    border: 2px solid #5e72e4;
+    /* Indigo border */
+    color: #5e72e4;
+    /* Indigo text */
+    font-weight: 600;
+    padding: 8px 18px;
+    transition: all 0.3s ease;
+}
+
+.instructions-button:hover {
+    background-color: #5e72e4;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(94, 114, 228, 0.3);
+}
+
+.guess-input-submission-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.guess-input-area {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.letter-input-box {
+    width: 50px;
+    height: 50px;
+    text-align: center;
+    font-size: 1.6rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    border: 2px solid #d1d8e0;
+    border-radius: 10px;
+    padding: 0;
+    caret-color: #5e72e4;
+    transition: all 0.2s ease;
+    color: #32325d;
+}
+
+.letter-input-box:focus {
+    border-color: #5e72e4;
+    box-shadow: 0 0 0 0.2rem rgba(94, 114, 228, 0.25);
+    transform: scale(1.05);
+}
+
+.arrow-submit-button {
+    width: 50px;
+    height: 50px;
+    font-size: 1.8rem;
+    line-height: 1;
+    padding: 0;
+    border-radius: 10px;
+    background-color: #5e72e4;
+    border-color: #5e72e4;
+    color: white;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.arrow-submit-button:hover {
+    background-color: #4a5cc0;
+    border-color: #4a5cc0;
+    transform: scale(1.05);
+    box-shadow: 0 4px 10px rgba(94, 114, 228, 0.4);
+}
+
+.guesses-history {
+    text-align: left;
+    max-height: 240px;
+    overflow-y: auto;
+    padding-right: 10px;
+    width: 100%;
+    margin-bottom: 15px;
+    border-top: 1px solid #e0e6ed;
+    padding-top: 15px;
+}
+
+.guess-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 5px;
+    border-bottom: 1px solid #e9ecef;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+    background-color: #f8f9fc;
+    border-radius: 8px;
+}
+
+.guess-row:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.guessed-word-display {
+    display: flex;
+    gap: 8px;
+}
+
+.guessed-word-display .letter-box {
+    width: 50px;
+    height: 50px;
+    font-size: 1.6rem;
+    font-weight: 600;
+    border: 2px solid #e0e6ed;
+    background-color: #ffffff;
+    color: #495057;
+    border-radius: 10px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    text-transform: uppercase;
+}
+
+.scores {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.score-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.score-badge-green {
+    background-color: #2dce89;
+}
+
+.score-badge-yellow {
+    background-color: #fbcf33;
+    color: #32325d;
+}
+
+.message-area {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-size: 1.05rem;
+    font-weight: 500;
+    min-height: 30px;
+}
+
+.message-area .alert {
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 1rem;
+}
+
+.attempts-text {
+    color: #525f7f;
+    font-weight: 500;
+}
+
+.new-game-button {
+    background-color: #f5365c;
+    border-color: #f5365c;
+    color: white;
+    font-weight: 600;
+    padding: 10px 20px;
+    transition: all 0.3s ease;
+}
+
+.new-game-button:hover {
+    background-color: #ec0c38;
+    border-color: #ec0c38;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(245, 54, 92, 0.3);
+}
+
+/* Graffiti Animation Styles */
+#graffiti-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    /* Darker overlay */
+    display: none;
+    /* Hidden by default */
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+    /* Higher than Bootstrap modals (usually 1040-1050) */
+    opacity: 0;
+    transition: opacity 0.4s ease-in-out;
+}
+
+#graffiti-overlay.show {
+    display: flex;
+    opacity: 1;
+}
+
+#graffiti-text {
+    font-family: 'Permanent Marker', cursive;
+    /* Graffiti-style font from Google Fonts */
+    font-size: clamp(2rem, 12vw, 8rem);
+    /* Responsive font size: min, preferred, max */
+    color: #fff;
+    text-align: center;
+    padding: 20px;
+    opacity: 0;
+    /* Start fully transparent for animation */
+    transform: scale(0.3) rotate(-15deg);
+    /* Start smaller and rotated */
+    /* Multiple text shadows for depth and spray effect */
+    text-shadow:
+        2px 2px 0px #ef3550,
+        /* Offset color 1 */
+        4px 4px 0px #f48fb1,
+        /* Offset color 2 */
+        6px 6px 0px #7e57c2,
+        /* Offset color 3 */
+        8px 8px 0px #2196f3,
+        /* Offset color 4 */
+        10px 10px 15px rgba(0, 0, 0, 0.5);
+    /* Main drop shadow */
+    animation: graffitiReveal 1.2s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards 0.2s;
+    /* Delayed start */
+}
+
+@keyframes graffitiReveal {
+    0% {
+        opacity: 0;
+        transform: scale(0.3) rotate(-15deg) translateY(50px);
+    }
+
+    60% {
+        opacity: 1;
+        transform: scale(1.1) rotate(5deg) translateY(-10px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1) rotate(-2deg) translateY(0);
+        /* Final resting state with slight tilt */
+    }
+}
+
+
+/* Modal styles */
+.modal-content {
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    background-color: #5e72e4;
+    color: white;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    border-bottom: none;
+    padding: 1.25rem;
+}
+
+.modal-title {
+    font-weight: 600;
+    font-size: 1.3rem;
+}
+
+.modal-body {
+    padding: 1.5rem;
+    font-size: 1rem;
+    color: #333;
+}
+
+.modal-body hr {
+    margin: 1.25rem 0;
+}
+
+.modal-body h6 {
+    font-weight: 600;
+    color: #32325d;
+    margin-bottom: 0.75rem;
+}
+
+.example-word .example-letter-box {
+    width: 35px;
+    height: 35px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border: 2px solid #d1d8e0;
+    background-color: #f8f9fc;
+    border-radius: 8px;
+    margin-right: 4px;
+    color: #32325d;
+}
+
+.example-score-g,
+.example-score-y {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-left: 5px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.example-score-g {
+    background-color: #2dce89;
+    color: white;
+}
+
+.example-score-y {
+    background-color: #fbcf33;
+    color: #32325d;
+}
+
+.modal-footer {
+    border-top: none;
+    padding: 1rem 1.5rem;
+}
+
+.modal-footer .btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    font-weight: 500;
+    padding: 8px 18px;
+}
+
+.modal-footer .btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+}
+
+/* Scrollbar styling */
+.guesses-history::-webkit-scrollbar {
+    width: 8px;
+}
+
+.guesses-history::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.guesses-history::-webkit-scrollbar-thumb {
+    background: #c5cde2;
+    border-radius: 10px;
+}
+
+.guesses-history::-webkit-scrollbar-thumb:hover {
+    background: #adb5bd;
+}
+
+/* ========================= */
+/* 1) Splash Screen CSS */
+#splash-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+#splash-screen .splash-content {
+    text-align: center;
+}
+
+#splash-screen h1 {
+    font-family: 'Permanent Marker', cursive;
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+}
+
+#splash-screen button {
+    font-size: 1.2rem;
+    padding: 0.75rem 1.5rem;
+}
+
+/* ========================= */
+/* 2) Leaderboard Table Styles */
+#leaderboard table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+#leaderboard th,
+#leaderboard td {
+    border: 1px solid #e0e6ed;
+    padding: 8px;
+    text-align: center;
+}
+
+#leaderboard th {
+    background-color: #5e72e4;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+#leaderboard tr:nth-child(even) {
+    background-color: #f8f9fc;
+}
+
+#leaderboard p {
+    margin: 0;
+    color: #525f7f;
+    font-style: italic;
+}
