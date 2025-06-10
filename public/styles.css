@@ -452,13 +452,18 @@ body {
     width: 100%;
     border-collapse: collapse;
     margin-top: 1rem;
+    font-size: 0.9rem;
+    /* Adjusted for better fit on small screens */
 }
 
 #leaderboard th,
 #leaderboard td {
     border: 1px solid #e0e6ed;
-    padding: 8px;
+    padding: 6px 4px;
+    /* Adjusted padding */
     text-align: center;
+    word-break: break-word;
+    /* Allow long words to break */
 }
 
 #leaderboard th {
@@ -475,4 +480,27 @@ body {
     margin: 0;
     color: #525f7f;
     font-style: italic;
+}
+
+/* Added media query for smaller screens */
+@media (max-width: 400px) {
+    #leaderboard table {
+        font-size: 0.8rem;
+        /* Further reduce font size */
+    }
+
+    #leaderboard th,
+    #leaderboard td {
+        padding: 4px 2px;
+        /* Further reduce padding */
+    }
+
+    /* Optionally hide less critical columns on very small screens */
+    /* Example: Hide the 'Date' column */
+    /*
+    #leaderboard th:nth-child(5),
+    #leaderboard td:nth-child(5) {
+        display: none;
+    }
+    */
 }

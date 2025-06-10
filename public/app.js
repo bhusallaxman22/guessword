@@ -9,8 +9,9 @@ let targetWord = "";
 let currentAttempts = 0;
 let gameOver = false;
 let startTime = 0;
+let currentLevel = 1; // Default, will be overridden by localStorage if available
 
-// Session / user info (populated by genUsername)
+// Session / user info (populated by genUsername or localStorage)
 let USER_ID = null;
 let USERNAME = null;
 
@@ -32,6 +33,11 @@ const guessesHistoryElement = document.getElementById("guessesHistory");
 const attemptsLeftElement = document.getElementById("attemptsLeft");
 const newGameButtonElement = document.getElementById("newGameButton");
 const leaderboardContainer = document.getElementById("leaderboard");
+const levelDisplayElement = document.createElement("p"); // For displaying current level
+levelDisplayElement.classList.add("current-level-display", "mt-2", "mb-0"); // Added some basic styling classes
+const toggleLeaderboardButton = document.getElementById("toggleLeaderboardButton"); // Added
+const leaderboardHr = document.getElementById("leaderboardHr"); // Added
+const leaderboardTitle = document.getElementById("leaderboardTitle"); // Added
 
 // Graffiti overlay (unchanged from original)
 const graffitiOverlayElement = document.createElement("div");
@@ -43,19 +49,22 @@ document.body.appendChild(graffitiOverlayElement);
 
 // ─── Section B: Utility Functions ───────────────────────────────────────
 
-async function fetchWordOfTheDay() {
+async function fetchWordForLevel(level) { // Renamed and modified
     try {
-        const res = await fetch("/.netlify/functions/getWordOfTheDay");
-        if (!res.ok) throw new Error("Failed to fetch daily word");
+        const res = await fetch(`/.netlify/functions/getWordOfTheDay?level=${level}`); // Pass level
+        if (!res.ok) {
+            if (res.status === 404) { // Handle case where no more levels/words
+                return null; // Indicate no more words
+            }
+            throw new Error(`Failed to fetch word for level ${level}`);
+        }
         const { data } = await res.json(); // data = base64(IV + ciphertext)
         const plaintext = await decryptWord(data);
         return plaintext; // e.g. "BIRD"
     } catch (err) {
         console.error("Error fetching or decrypting word:", err);
-        // Fallback: pick a random word client-side if needed:
-        return FOUR_LETTER_WORDS[
-            Math.floor(Math.random() * FOUR_LETTER_WORDS.length)
-        ];
+        displayMessage("Could not load the next word. Please try refreshing.", "danger");
+        return null; // Indicate failure
     }
 }
 function base64ToUint8Array(base64) {
@@ -188,17 +197,18 @@ function triggerGraffitiAnimation(word) {
         graffitiOverlayElement.classList.remove("show");
         document.body.classList.remove("no-scroll");
         displayMessage(
-            `🎉 Congratulations, ${USERNAME}! You guessed "${targetWord}" in ${currentAttempts} tries! 🎉`,
+            `🎉 Congratulations, ${USERNAME}! You guessed "${targetWord}" in ${currentAttempts} tries! Level ${currentLevel} completed! 🎉`, // Updated message
             "success"
         );
         // After displaying the success message, record the result:
         const timeMs = Date.now() - startTime;
         postResult(USER_ID, currentAttempts, timeMs).then(() => {
-            fetchAndRenderLeaderboard();
+            fetchAndRenderLeaderboard(); // Refresh leaderboard
         });
 
         submitGuessMobileButtonElement.disabled = true;
         letterInputElements.forEach((input) => (input.disabled = true));
+        newGameButtonElement.textContent = "Next Level"; // Change button text
         newGameButtonElement.style.display = "block";
     }, 2800);
 }
@@ -234,27 +244,45 @@ async function handleGuess() {
 
     if (scores.green === WORD_LENGTH) {
         gameOver = true;
-        triggerGraffitiAnimation(targetWord);
+        triggerGraffitiAnimation(targetWord); // Win condition
     } else if (currentAttempts >= MAX_ATTEMPTS) {
         gameOver = true;
         displayMessage(
-            `😥 Game Over, ${USERNAME}! The word was "${targetWord}". Better luck next time!`,
+            `😥 Game Over, ${USERNAME}! The word was "${targetWord}". You reached Level ${currentLevel}.`, // Updated message
             "danger"
         );
         submitGuessMobileButtonElement.disabled = true;
         letterInputElements.forEach((input) => (input.disabled = true));
+        newGameButtonElement.textContent = "Play Again (Level " + currentLevel + ")"; // Offer to replay current level
         newGameButtonElement.style.display = "block";
-        // (Optionally record losses as well if you want.)
     } else {
         clearAndFocusInput();
     }
 }
 
 /**
- * Initialize/reset the game board for a new round.
+ * Initialize/reset the game board for a new round or next level.
  */
-async function initGame() {
-    targetWord = await fetchWordOfTheDay();
+async function initGame(advanceLevel = false) { // Added parameter to control level advancement
+    if (advanceLevel) {
+        currentLevel++;
+    }
+    localStorage.setItem("guessword_currentLevel", currentLevel.toString()); // Save currentLevel
+
+    targetWord = await fetchWordForLevel(currentLevel);
+
+    if (!targetWord) { // Handle case where no more words/levels
+        displayMessage(`🎉 Congratulations, ${USERNAME}! You have completed all available levels! 🎉`, "success");
+        submitGuessMobileButtonElement.disabled = true;
+        letterInputElements.forEach((input) => (input.disabled = true));
+        newGameButtonElement.style.display = "none"; // Hide button or change to "Restart Game"
+        // Potentially reset to level 1 or show a final message
+        levelDisplayElement.textContent = "All Levels Cleared!";
+        return;
+    }
+
+    levelDisplayElement.textContent = `Level: ${currentLevel}`; // Update level display
+
     currentAttempts = 0;
     gameOver = false;
     guessesHistoryElement.innerHTML = "";
@@ -273,6 +301,8 @@ async function initGame() {
     });
     submitGuessMobileButtonElement.disabled = false;
     newGameButtonElement.style.display = "none";
+    newGameButtonElement.textContent = "Play Again (Same Word)"; // Reset button text for cases where it's shown before level completion (e.g. game over)
+
 
     letterInputElements[0].focus();
     startTime = Date.now(); // start the timer for this round
@@ -290,6 +320,8 @@ async function fetchUsername() {
         const data = await res.json();
         USER_ID = data.userId;
         USERNAME = data.username;
+        localStorage.setItem("guessword_USER_ID", USER_ID); // Save USER_ID
+        localStorage.setItem("guessword_USERNAME", USERNAME); // Save USERNAME
     } catch (err) {
         console.error("Error fetching username:", err);
         USERNAME = "Anonymous";
@@ -445,9 +477,37 @@ function handleSplashScreen() {
  * 3) Fetch the leaderboard
  */
 async function afterSplashInit() {
-    await fetchUsername();
-    await initGame();
-    fetchAndRenderLeaderboard();
+    // Try to load user data and level from localStorage
+    const storedUserId = localStorage.getItem("guessword_USER_ID");
+    const storedUsername = localStorage.getItem("guessword_USERNAME");
+    const storedLevel = localStorage.getItem("guessword_currentLevel");
+
+    if (storedUserId && storedUsername) {
+        USER_ID = storedUserId;
+        USERNAME = storedUsername;
+        console.log("Loaded user from localStorage:", USERNAME, USER_ID);
+    } else {
+        await fetchUsername(); // Fetch new if not in localStorage
+    }
+
+    if (storedLevel) {
+        currentLevel = parseInt(storedLevel, 10);
+        if (isNaN(currentLevel) || currentLevel < 1) {
+            currentLevel = 1; // Fallback if stored level is invalid
+            localStorage.setItem("guessword_currentLevel", currentLevel.toString());
+        }
+        console.log("Loaded level from localStorage:", currentLevel);
+    } else {
+        localStorage.setItem("guessword_currentLevel", currentLevel.toString()); // Save initial level if not present
+    }
+
+    // Insert the level display element into the DOM, e.g., before the guess input area
+    const guessInputArea = document.querySelector(".guess-input-submission-area");
+    if (guessInputArea && guessInputArea.parentNode) {
+        guessInputArea.parentNode.insertBefore(levelDisplayElement, guessInputArea);
+    }
+    await initGame(); // Initial game setup for level 1
+    // Leaderboard is initially hidden, fetchAndRenderLeaderboard will be called by button
 }
 
 // ─── Section E: Event Listeners & Initialization ──────────────────────
@@ -482,8 +542,32 @@ letterInputElements.forEach((input, index) => {
 // Click "➔" to submit a guess
 submitGuessMobileButtonElement.addEventListener("click", handleGuess);
 
-// "Play Again" resets with the same daily word
-newGameButtonElement.addEventListener("click", initGame);
+// "Play Again" or "Next Level" button
+newGameButtonElement.addEventListener("click", () => {
+    // Check if the game was won by looking at the button's text, which is set accordingly
+    if (gameOver && newGameButtonElement.textContent === "Next Level") {
+        initGame(true); // Advance to next level
+    } else {
+        initGame(false); // Replay current level (e.g., after game over or if "Play Again" was clicked)
+    }
+});
+
+// Toggle Leaderboard visibility and fetch data if showing
+toggleLeaderboardButton.addEventListener("click", () => {
+    const isHidden = leaderboardContainer.style.display === "none";
+    if (isHidden) {
+        leaderboardContainer.style.display = "block";
+        leaderboardHr.style.display = "block";
+        leaderboardTitle.style.display = "block";
+        fetchAndRenderLeaderboard(); // Fetch and display when showing
+        toggleLeaderboardButton.textContent = "Hide Leaderboard";
+    } else {
+        leaderboardContainer.style.display = "none";
+        leaderboardHr.style.display = "none";
+        leaderboardTitle.style.display = "none";
+        toggleLeaderboardButton.textContent = "Show Leaderboard";
+    }
+});
 
 // When DOM is ready, handle the splash screen
 document.addEventListener("DOMContentLoaded", () => {

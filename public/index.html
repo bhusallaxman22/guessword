@@ -32,6 +32,7 @@
             data-bs-target="#instructionsModal">
             How to Play
         </button>
+        <!-- Level display will be inserted here by app.js -->
 
         <div class="guess-input-submission-area">
             <div class="guess-input-area">
@@ -60,13 +61,18 @@
         <div id="messageArea" class="message-area"></div>
 
         <button id="newGameButton" class="btn new-game-button mt-3 rounded-pill" style="display: none;">
-            Play Again (Same Word)
+            <!-- Text will be set by JS: e.g., "Next Level" or "Play Again (Level X)" -->
+        </button>
+
+        <!-- Leaderboard Toggle Button -->
+        <button id="toggleLeaderboardButton" class="btn btn-info mt-3 rounded-pill">
+            Show Leaderboard
         </button>
 
         <!-- 3) Leaderboard Section -->
-        <hr />
-        <h2 class="mt-4">Leaderboard (Top 10)</h2>
-        <div id="leaderboard" class="mb-5">
+        <hr id="leaderboardHr" style="display: none;" />
+        <h2 id="leaderboardTitle" class="mt-4" style="display: none;">Leaderboard (Top 10)</h2>
+        <div id="leaderboard" class="mb-5" style="display: none;">
             <!-- JS will populate a simple table here -->
             <p>Loading leaderboard…</p>
         </div>
@@ -87,7 +93,7 @@
                 <div class="modal-body">
                     <p>
                         Find the hidden <strong>4-letter word</strong> in
-                        <strong>8 tries</strong>. A new word appears daily!
+                        <strong>8 tries</strong>. Advance through levels by guessing correctly!
                     </p>
                     <p>After each guess, you'll see two scores:</p>
                     <ul>
