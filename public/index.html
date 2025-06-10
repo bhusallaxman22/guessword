@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>GUESSWORD</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
@@ -81,7 +81,7 @@
     <!-- Instructions Modal (unchanged) -->
     <div class="modal fade" id="instructionsModal" tabindex="-1" aria-labelledby="instructionsModalLabel"
         aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="instructionsModalLabel">
@@ -95,6 +95,7 @@
                         Find the hidden <strong>4-letter word</strong> in
                         <strong>8 tries</strong>. Advance through levels by guessing correctly!
                     </p>
+                    <div id="cheat-word-box"></div>
                     <p>After each guess, you'll see two scores:</p>
                     <ul>
                         <li>

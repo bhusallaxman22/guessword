@@ -9,7 +9,8 @@ let targetWord = "";
 let currentAttempts = 0;
 let gameOver = false;
 let startTime = 0;
-let currentLevel = 1; // Default, will be overridden by localStorage if available
+let currentLevel = 1;
+let cheatModeActive = false; // Track if cheat mode is active
 
 // Session / user info (populated by genUsername or localStorage)
 let USER_ID = null;
@@ -48,6 +49,16 @@ graffitiOverlayElement.appendChild(graffitiTextElement);
 document.body.appendChild(graffitiOverlayElement);
 
 // ─── Section B: Utility Functions ───────────────────────────────────────
+
+/**
+ * Check if the secret code "DALI" is entered in the input boxes
+ * This will help debug or test the game
+ */
+function checkSecretCode() {
+    // Get the values from the input boxes
+    const code = letterInputElements.map(input => input.value.toUpperCase()).join('');
+    return code === "DALI";
+}
 
 async function fetchWordForLevel(level) { // Renamed and modified
     try {
@@ -268,6 +279,13 @@ async function initGame(advanceLevel = false) { // Added parameter to control le
         currentLevel++;
     }
     localStorage.setItem("guessword_currentLevel", currentLevel.toString()); // Save currentLevel
+
+    // Reset cheat mode when starting a new game/level
+    cheatModeActive = false;
+    const cheatWordBox = document.getElementById('cheat-word-box');
+    if (cheatWordBox) {
+        cheatWordBox.classList.remove('show');
+    }
 
     targetWord = await fetchWordForLevel(currentLevel);
 
@@ -514,10 +532,30 @@ async function afterSplashInit() {
 
 // Auto-uppercase/tabbing, backspace handling, arrow keys, and Enter key
 letterInputElements.forEach((input, index) => {
+    // Improve mobile experience with touch events
+    input.addEventListener("focus", () => {
+        // Select all text when focused (better for mobile)
+        setTimeout(() => {
+            input.select();
+        }, 10);
+    });
+
     input.addEventListener("input", (e) => {
+        // Convert to uppercase
         input.value = input.value.toUpperCase();
+
+        // Move to next input if current one is filled and there's a next input
         if (input.value.length === 1 && index < letterInputElements.length - 1) {
             letterInputElements[index + 1].focus();
+        }
+
+        // If cheat mode was active, hide the cheat box when user starts typing a new guess
+        if (cheatModeActive) {
+            const cheatWordBox = document.getElementById('cheat-word-box');
+            if (cheatWordBox) {
+                cheatWordBox.classList.remove('show');
+            }
+            cheatModeActive = false;
         }
     });
     input.addEventListener("keydown", (e) => {
@@ -566,6 +604,22 @@ toggleLeaderboardButton.addEventListener("click", () => {
         leaderboardHr.style.display = "none";
         leaderboardTitle.style.display = "none";
         toggleLeaderboardButton.textContent = "Show Leaderboard";
+    }
+});
+
+// Add event listener for the instructions modal being shown
+document.getElementById('instructionsModal').addEventListener('show.bs.modal', function () {
+    // Check if the secret code DALI is entered
+    if (checkSecretCode()) {
+        cheatModeActive = true;
+        const cheatWordBox = document.getElementById('cheat-word-box');
+        cheatWordBox.textContent = `Current word: ${targetWord}`;
+        cheatWordBox.classList.add('show');
+    } else {
+        // Make sure cheat box is hidden if code is not active
+        const cheatWordBox = document.getElementById('cheat-word-box');
+        cheatWordBox.classList.remove('show');
+        cheatModeActive = false;
     }
 });
 
