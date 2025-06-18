@@ -13,10 +13,138 @@
         rel="stylesheet" />
     <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css" />
+
+    <style>
+        /*——————————————————————————————————————————————————————————
+      DARK THEME KEYBOARD
+    ———————————————————————————————————————————————————————————*/
+        :root {
+            --key-bg: #565758;
+            --key-color: #ffffff;
+            --key-border: #3a3a3c;
+            --key-hover: #6e6e6e;
+            --key-active: #3a3a3c;
+        }
+
+        /* container */
+        #virtual-keyboard {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #121212;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+            padding: 1rem 0.5rem;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            border-top: 1px solid #3a3a3c;
+        }
+
+        #virtual-keyboard.hidden {
+            transform: translateY(100%);
+            opacity: 0;
+        }
+
+        /* each row */
+        #virtual-keyboard .vk-row {
+            display: flex;
+            justify-content: center;
+            gap: 0.3rem;
+            margin-bottom: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        #virtual-keyboard .vk-row:last-child {
+            margin-bottom: 0;
+        }
+
+        /* keys */
+        #virtual-keyboard button {
+            min-width: 42px;
+            height: 58px;
+            border-radius: 4px;
+            background: var(--key-bg);
+            color: var(--key-color);
+            border: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        #virtual-keyboard button:hover:not(.key-disabled) {
+            background: var(--key-hover);
+        }
+
+        #virtual-keyboard button:active:not(.key-disabled) {
+            background: var(--key-active);
+            transform: scale(0.95);
+        }
+
+        /* Special keys */
+        #virtual-keyboard button[data-key="ENTER"] {
+            min-width: 80px;
+            font-size: 0.8rem;
+            background: #818384;
+        }
+
+        #virtual-keyboard button[data-key="⌫"] {
+            min-width: 80px;
+            font-size: 1.2rem;
+            background: #818384;
+        }
+
+        #virtual-keyboard button[data-key="ENTER"]:hover,
+        #virtual-keyboard button[data-key="⌫"]:hover {
+            background: #9a9a9a;
+        }
+
+        /* greyed-out keys */
+        #virtual-keyboard .key-disabled {
+            background-color: #3a3a3c !important;
+            color: #6e6e6e !important;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        /* Current input area - visible for user interaction */
+        .current-input-area {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 400px) {
+            #virtual-keyboard {
+                padding: 0.75rem 0.25rem;
+            }
+
+            #virtual-keyboard button {
+                min-width: 36px;
+                height: 48px;
+                font-size: 0.8rem;
+            }
+
+            #virtual-keyboard .vk-row {
+                gap: 0.2rem;
+                margin-bottom: 0.3rem;
+            }
+
+            #virtual-keyboard button[data-key="ENTER"],
+            #virtual-keyboard button[data-key="⌫"] {
+                min-width: 60px;
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <!-- 1) Splash Screen Overlay -->
+    <!-- Splash -->
     <div id="splash-screen">
         <div class="splash-content">
             <h1>Welcome to GUESSWORD</h1>
@@ -24,153 +152,111 @@
         </div>
     </div>
 
-    <!-- 2) Main Game Container -->
+    <!-- Main Game -->
     <div class="game-container" style="display: none;">
         <h1 class="header-title">GUESSWORD</h1>
 
-        <button type="button" class="btn btn-outline-primary instructions-button rounded-pill" data-bs-toggle="modal"
-            data-bs-target="#instructionsModal">
-            How to Play
-        </button>
-        <!-- Level display will be inserted here by app.js -->
-
-        <div class="guess-input-submission-area">
-            <div class="guess-input-area">
-                <input type="text" class="form-control letter-input-box" id="letter1" maxlength="1"
-                    aria-label="First letter" />
-                <input type="text" class="form-control letter-input-box" id="letter2" maxlength="1"
-                    aria-label="Second letter" />
-                <input type="text" class="form-control letter-input-box" id="letter3" maxlength="1"
-                    aria-label="Third letter" />
-                <input type="text" class="form-control letter-input-box" id="letter4" maxlength="1"
-                    aria-label="Fourth letter" />
+        <!-- Game Board -->
+        <div class="game-board">
+            <!-- Current input area -->
+            <div class="current-input-area">
+                <input type="text" class="letter-input-box" id="letter1" maxlength="1" />
+                <input type="text" class="letter-input-box" id="letter2" maxlength="1" />
+                <input type="text" class="letter-input-box" id="letter3" maxlength="1" />
+                <input type="text" class="letter-input-box" id="letter4" maxlength="1" />
             </div>
-            <button id="submitGuessMobileButton" class="btn btn-primary arrow-submit-button" type="button"
-                aria-label="Submit guess">
-                ➔
-            </button>
+
+            <!-- Guesses History -->
+            <div class="guesses-history" id="guessesHistory">
+                <!-- Previous guesses will be shown here with their scores -->
+            </div>
         </div>
 
-        <div class="guesses-history" id="guessesHistory">
-            <!-- Guesses appended via JS -->
-        </div>
-        <p class="mt-1 attempts-text">
-            <span id="attemptsLeft">8</span> attempts remaining.
-        </p>
+        <p class="current-level-display mt-3">Level: 1</p>
+        <p class="attempts-text"><span id="attemptsLeft">8</span> attempts remaining</p>
 
         <div id="messageArea" class="message-area"></div>
+        <button id="newGameButton" class="btn new-game-button mt-3" style="display:none;">Next Level</button>
 
-        <button id="newGameButton" class="btn new-game-button mt-3 rounded-pill" style="display: none;">
-            <!-- Text will be set by JS: e.g., "Next Level" or "Play Again (Level X)" -->
-        </button>
+        <div class="action-buttons-group">
+            <button id="toggleKeyboardButton" class="btn btn-secondary mt-3">
+                <span id="keyboardToggleText">Hide Keyboard</span>
+            </button>
+            <button id="toggleLeaderboardButton" class="btn btn-info mt-3">Show Leaderboard</button>
+            <button class="btn btn-outline-light instructions-button mt-3" data-bs-toggle="modal"
+                data-bs-target="#instructionsModal">How to Play</button>
+        </div>
 
-        <!-- Leaderboard Toggle Button -->
-        <button id="toggleLeaderboardButton" class="btn btn-info mt-3 rounded-pill">
-            Show Leaderboard
-        </button>
-
-        <!-- 3) Leaderboard Section -->
-        <hr id="leaderboardHr" style="display: none;" />
-        <h2 id="leaderboardTitle" class="mt-4" style="display: none;">Leaderboard (Top 10)</h2>
-        <div id="leaderboard" class="mb-5" style="display: none;">
-            <!-- JS will populate a simple table here -->
+        <hr id="leaderboardHr" style="display:none;" />
+        <h2 id="leaderboardTitle" class="mt-4" style="display:none;">Leaderboard (Top 10)</h2>
+        <div id="leaderboard" class="mb-5" style="display:none;">
             <p>Loading leaderboard…</p>
         </div>
     </div>
 
-    <!-- Instructions Modal (unchanged) -->
+    <!-- Virtual QWERTY Keyboard -->
+    <div id="virtual-keyboard">
+        <!-- rows will be injected by app.js -->
+    </div>
+
+    <!-- Instructions Modal -->
     <div class="modal fade" id="instructionsModal" tabindex="-1" aria-labelledby="instructionsModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="instructionsModalLabel">
-                        How to Play GUESSWORD
-                    </h5>
+                    <h5 class="modal-title" id="instructionsModalLabel">How to Play GUESSWORD</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>
-                        Find the hidden <strong>4-letter word</strong> in
-                        <strong>8 tries</strong>. Advance through levels by guessing correctly!
-                    </p>
+                    <p>Find the hidden <strong>4-letter word</strong> in <strong>8 tries</strong>. Advance through
+                        levels
+                        by guessing correctly!</p>
                     <div id="cheat-word-box"></div>
                     <p>After each guess, you'll see two scores:</p>
                     <ul>
-                        <li>
-                            <span class="example-score-g" style="margin-right: 5px;">G</span>
-                            Number of letters in the <strong>correct spot</strong>.
-                        </li>
-                        <li>
-                            <span class="example-score-y" style="margin-right: 5px;">Y</span>
-                            Number of letters present in the word but in the
-                            <strong>wrong spot</strong>.
+                        <li><span class="example-score-g">G</span> letters correct &amp; in the right spot.</li>
+                        <li><span class="example-score-y">Y</span> letters present but wrong spot.</li>
+                    </ul>
+                    <hr />
+                    <h6>Controls:</h6>
+                    <ul class="small">
+                        <li><strong>Virtual Keyboard:</strong> Tap the letters or use "Hide/Show Keyboard" button</li>
+                        <li><strong>Keyboard Shortcuts:</strong>
+                            <ul>
+                                <li>Ctrl/Cmd + K: Toggle virtual keyboard</li>
+                                <li>Enter: Submit guess</li>
+                                <li>Escape: Clear input</li>
+                            </ul>
                         </li>
                     </ul>
                     <hr />
                     <h6>Examples:</h6>
                     <div class="mb-3">
-                        <p>
-                            Guess:
+                        <p>Guess:
                             <strong class="example-word d-inline-flex align-items-center">
-                                <span class="example-letter-box">W</span><span class="example-letter-box">O</span><span
-                                    class="example-letter-box">R</span><span class="example-letter-box">K</span>
+                                <span class="example-letter-box">W</span>
+                                <span class="example-letter-box">O</span>
+                                <span class="example-letter-box">R</span>
+                                <span class="example-letter-box">K</span>
                             </strong>
-                            Score:
-                            <span class="example-score-g">2</span>
-                            <span class="example-score-y">1</span>
+                            Score: <span class="example-score-g">2</span> <span class="example-score-y">1</span>
                         </p>
-                        <small class="d-block text-muted">
-                            This means: 2 letters are correct and in the right spot. 1
-                            more letter is in the word but in a different spot.
-                        </small>
+                        <small class="">2 right spot, 1 wrong spot.</small>
                     </div>
-                    <div class="mb-3">
-                        <p>
-                            Guess:
-                            <strong class="example-word d-inline-flex align-items-center">
-                                <span class="example-letter-box">H</span><span class="example-letter-box">E</span><span
-                                    class="example-letter-box">L</span><span class="example-letter-box">P</span>
-                            </strong>
-                            Score:
-                            <span class="example-score-g">1</span>
-                            <span class="example-score-y">0</span>
-                        </p>
-                        <small class="d-block text-muted">
-                            This means: 1 letter is correct and in the right spot. No
-                            other guessed letters are in the word.
-                        </small>
-                    </div>
-                    <div>
-                        <p>
-                            Guess:
-                            <strong class="example-word d-inline-flex align-items-center">
-                                <span class="example-letter-box">B</span><span class="example-letter-box">U</span><span
-                                    class="example-letter-box">R</span><span class="example-letter-box">P</span>
-                            </strong>
-                            Score:
-                            <span class="example-score-g">0</span>
-                            <span class="example-score-y">0</span>
-                        </p>
-                        <small class="d-block text-muted">
-                            This means: None of the letters from your guess are in the
-                            hidden word.
-                        </small>
-                    </div>
+                    <!-- …other examples… -->
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">
-                        Got it!
-                    </button>
+                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Got
+                        it!</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Bootstrap JS Bundle -->
+    <!-- Bootstrap JS + App -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Custom JS -->
     <script src="app.js"></script>
 </body>
 
