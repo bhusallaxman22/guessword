@@ -224,17 +224,23 @@ body.keyboard-hidden {
 }
 
 .new-game-button {
-    background: #0078d4;
-    border: none;
-    color: white;
-    font-weight: 500;
-    padding: 10px 20px;
-    border-radius: 6px;
-    transition: all 0.2s ease;
+    background: #28a745 !important;
+    border: none !important;
+    color: white !important;
+    font-weight: 600 !important;
+    padding: 12px 24px !important;
+    border-radius: 6px !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3) !important;
+    min-width: 160px !important;
+    flex: none !important;
+    /* Don't stretch like other buttons */
 }
 
 .new-game-button:hover {
-    background: #106ebe;
+    background: #218838 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4) !important;
 }
 
 .current-level-display {
@@ -483,10 +489,11 @@ body.keyboard-hidden {
 /* Action buttons group */
 .action-buttons-group {
     display: flex;
-    gap: 10px;
+    gap: 12px;
     flex-wrap: wrap;
     justify-content: center;
-    margin-top: 15px;
+    align-items: center;
+    margin-top: 20px;
 }
 
 .action-buttons-group .btn {
@@ -949,14 +956,18 @@ body.keyboard-hidden {
 
     .new-game-button,
     .action-buttons-group .btn {
-        padding: 8px 15px;
+        padding: 10px 16px;
         font-size: 0.95rem;
         min-width: 120px;
     }
 
+    .new-game-button {
+        min-width: 140px !important;
+    }
+
     .action-buttons-group {
-        gap: 8px;
-        margin-top: 10px;
+        gap: 10px;
+        margin-top: 15px;
     }
 
     /* Modal adjustments */
@@ -1058,13 +1069,18 @@ body.keyboard-hidden {
     .action-buttons-group .btn,
     .instructions-button {
         font-size: 0.85rem;
-        padding: 6px 12px;
+        padding: 8px 14px;
         min-width: 100px;
+    }
+
+    .new-game-button {
+        min-width: 120px !important;
+        padding: 10px 16px !important;
     }
 
     .action-buttons-group {
         flex-direction: column;
-        gap: 6px;
+        gap: 8px;
     }
 
     .action-buttons-group .btn {
