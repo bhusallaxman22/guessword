@@ -9,6 +9,7 @@ let gameOver = false;
 let startTime = 0;
 let currentLevel = 1;
 let cheatModeActive = false;
+let difficulty = "medium"; // easy, medium, hard, raw
 
 // Session / user info
 let USER_ID = null;
@@ -17,6 +18,11 @@ let USERNAME = null;
 // Current input state
 let currentGuess = "";
 let guessHistory = [];
+
+// Keyboard feedback state
+let correctLetters = new Set(); // Letters in correct position
+let presentLetters = new Set(); // Letters in word but wrong position
+let absentLetters = new Set(); // Letters not in word at all
 
 // Select DOM elements
 const splashScreen = document.getElementById("splash-screen");
@@ -39,6 +45,7 @@ const keyboardToggleText = document.getElementById("keyboardToggleText");
 const leaderboardHr = document.getElementById("leaderboardHr");
 const leaderboardTitle = document.getElementById("leaderboardTitle");
 const leaderboardContainer = document.getElementById("leaderboard");
+const difficultySelect = document.getElementById("difficultySelect");
 
 // Graffiti overlay
 const graffitiOverlayElement = document.createElement("div");
@@ -50,7 +57,6 @@ document.body.appendChild(graffitiOverlayElement);
 
 // Virtual keyboard state
 const keyboardContainer = document.getElementById("virtual-keyboard");
-let absentLetters = new Set();
 let keyboardVisible = true;
 
 // Utility Functions
@@ -184,15 +190,23 @@ function renderKeyboard() {
             btn.textContent = key;
             btn.setAttribute("data-key", key);
 
+            // Apply keyboard feedback classes based on difficulty
+            if (key !== "ENTER" && key !== "⌫" && difficulty !== "raw") {
+                if (correctLetters.has(key)) {
+                    btn.classList.add("key-correct");
+                } else if (presentLetters.has(key)) {
+                    btn.classList.add("key-present");
+                } else if (absentLetters.has(key)) {
+                    btn.classList.add("key-absent");
+                }
+            }
+
             if (key === "⌫") {
                 btn.addEventListener("click", handleVirtualDelete);
             } else if (key === "ENTER") {
                 btn.addEventListener("click", handleGuess);
             } else {
                 btn.addEventListener("click", () => handleVirtualLetter(key));
-                if (absentLetters.has(key)) {
-                    btn.classList.add("key-disabled");
-                }
             }
             rowDiv.appendChild(btn);
         });
@@ -258,6 +272,57 @@ function triggerGraffitiAnimation(word) {
     }, 2800);
 }
 
+function updateKeyboardFeedback(guess, scores) {
+    if (difficulty === "raw") return; // No feedback for RAW mode
+
+    const guessChars = guess.split("");
+    const targetChars = targetWord.split("");
+
+    // Track which letters are correct (green) and present (yellow)
+    for (let i = 0; i < guessChars.length; i++) {
+        const letter = guessChars[i];
+
+        if (letter === targetChars[i]) {
+            // Letter is in correct position
+            correctLetters.add(letter);
+            // Remove from present if it was there
+            presentLetters.delete(letter);
+        } else if (targetChars.includes(letter)) {
+            // Letter is in word but wrong position
+            if (!correctLetters.has(letter)) {
+                presentLetters.add(letter);
+            }
+        }
+    }
+
+    // Handle absent letters based on difficulty
+    if (difficulty === "easy") {
+        // Easy: Grey out any letter not in the word
+        for (const letter of guessChars) {
+            if (!targetChars.includes(letter)) {
+                absentLetters.add(letter);
+            }
+        }
+    } else if (difficulty === "medium") {
+        // Medium: Only grey out if ALL 4 letters of a guess are not in the word
+        if (scores.green === 0 && scores.yellow === 0) {
+            for (const letter of guessChars) {
+                absentLetters.add(letter);
+            }
+        }
+    } else if (difficulty === "hard") {
+        // Hard: Only grey out letters that are confirmed not in the word
+        for (const letter of guessChars) {
+            if (!targetChars.includes(letter)) {
+                absentLetters.add(letter);
+            }
+        }
+    }
+
+    // Re-render keyboard to apply visual feedback
+    renderKeyboard();
+}
+
 async function handleGuess() {
     if (gameOver) return;
     clearMessage();
@@ -282,11 +347,8 @@ async function handleGuess() {
     // Store the guess
     guessHistory.push({ guess, scores });
 
-    // Only grey out keyboard keys on 0-0
-    if (scores.green === 0 && scores.yellow === 0) {
-        new Set(guess.split("")).forEach((L) => absentLetters.add(L));
-    }
-    renderKeyboard();
+    // Update keyboard feedback based on difficulty
+    updateKeyboardFeedback(guess, scores);
 
     updateAttemptsDisplay();
 
@@ -316,6 +378,9 @@ async function initGame(advanceLevel = false) {
     const cheatWordBox = document.getElementById("cheat-word-box");
     if (cheatWordBox) cheatWordBox.classList.remove("show");
 
+    // Clear all keyboard feedback state
+    correctLetters.clear();
+    presentLetters.clear();
     absentLetters.clear();
     renderKeyboard();
 
@@ -478,6 +543,17 @@ async function afterSplashInit() {
         localStorage.setItem("guessword_currentLevel", "1");
     }
 
+    // Initialize difficulty from localStorage
+    const storedDifficulty = localStorage.getItem("guessword_difficulty");
+    if (storedDifficulty && ["easy", "medium", "hard", "raw"].includes(storedDifficulty)) {
+        difficulty = storedDifficulty;
+        difficultySelect.value = difficulty;
+    } else {
+        difficulty = "easy"; // default
+        difficultySelect.value = difficulty;
+        localStorage.setItem("guessword_difficulty", difficulty);
+    }
+
     // Initialize keyboard visibility
     if (storedKeyboardVisible !== null) {
         keyboardVisible = storedKeyboardVisible === "true";
@@ -585,6 +661,19 @@ toggleLeaderboardButton.addEventListener("click", () => {
 });
 
 toggleKeyboardButton.addEventListener("click", toggleKeyboard);
+
+// Add difficulty select change handler
+difficultySelect.addEventListener("change", (e) => {
+    difficulty = e.target.value;
+    // Clear keyboard feedback state when difficulty changes
+    correctLetters.clear();
+    presentLetters.clear();
+    absentLetters.clear();
+    // Re-render keyboard to remove any existing feedback
+    renderKeyboard();
+    // Save difficulty preference
+    localStorage.setItem("guessword_difficulty", difficulty);
+});
 
 document.getElementById("instructionsModal").addEventListener("show.bs.modal", function () {
     if (checkSecretCode()) {

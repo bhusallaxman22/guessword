@@ -7,7 +7,7 @@ body {
     justify-content: center;
     min-height: 100vh;
     padding: 20px;
-    padding-bottom: 180px;
+    padding-bottom: 160px;
     color: #ffffff;
     margin: 0;
     transition: all 0.3s ease;
@@ -1073,6 +1073,65 @@ body.keyboard-hidden {
     }
 }
 
+/* Mobile-specific adjustments */
+@media (max-width: 480px) {
+    body {
+        padding-bottom: 140px;
+    }
+
+    .game-container {
+        padding: 20px 24px;
+        max-width: 95%;
+    }
+
+    .header-title {
+        font-size: 1.8rem;
+        margin-bottom: 20px;
+    }
+
+    .current-input-area {
+        gap: 8px;
+        padding: 12px;
+    }
+
+    .letter-input-box {
+        width: 45px;
+        height: 45px;
+        font-size: 1.4rem;
+    }
+
+    .guesses-history {
+        max-height: 250px;
+        padding: 10px;
+    }
+}
+
+@media (max-width: 360px) {
+    body {
+        padding-bottom: 130px;
+        padding: 15px;
+    }
+
+    .game-container {
+        padding: 16px 20px;
+    }
+
+    .header-title {
+        font-size: 1.6rem;
+    }
+
+    .letter-input-box {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+
+    .current-input-area {
+        gap: 6px;
+        padding: 10px;
+    }
+}
+
 /* Keyboard hidden indicator */
 body.keyboard-hidden::after {
     content: "⌨️ Keyboard Hidden - Ctrl/Cmd+K to toggle";
@@ -1099,4 +1158,56 @@ body.keyboard-hidden::after {
         opacity: 1;
         transform: translateX(-50%) translateY(0);
     }
+}
+
+/* Difficulty Selection */
+.difficulty-selection {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding: 8px 12px;
+    background: #2a2a2a;
+    border-radius: 6px;
+    border: 1px solid #404040;
+}
+
+.difficulty-label {
+    color: #ffffff;
+    font-weight: 500;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.difficulty-select {
+    background: #1a1a1a;
+    color: #ffffff;
+    border: 1px solid #404040;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.9rem;
+    min-width: 80px;
+}
+
+.difficulty-select:focus {
+    outline: none;
+    border-color: #0078d4;
+}
+
+/* Keyboard feedback states */
+.key-correct {
+    background-color: #538d4e !important;
+    color: #ffffff !important;
+}
+
+.key-present {
+    background-color: #b59f3b !important;
+    color: #ffffff !important;
+}
+
+.key-absent {
+    background-color: #3a3a3c !important;
+    color: #6e6e6e !important;
+    opacity: 0.6;
 }

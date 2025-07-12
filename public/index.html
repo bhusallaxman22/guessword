@@ -34,13 +34,14 @@
             width: 100%;
             background: #121212;
             box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
-            padding: 1rem 0.5rem;
+            padding: 12px 8px 8px 8px;
             z-index: 1000;
             display: flex;
             flex-direction: column;
             align-items: center;
             transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
             border-top: 1px solid #3a3a3c;
+            max-height: 200px;
         }
 
         #virtual-keyboard.hidden {
@@ -52,9 +53,10 @@
         #virtual-keyboard .vk-row {
             display: flex;
             justify-content: center;
-            gap: 0.3rem;
-            margin-bottom: 0.4rem;
-            flex-wrap: wrap;
+            gap: 4px;
+            margin-bottom: 6px;
+            width: 100%;
+            max-width: 500px;
         }
 
         #virtual-keyboard .vk-row:last-child {
@@ -63,17 +65,22 @@
 
         /* keys */
         #virtual-keyboard button {
-            min-width: 42px;
-            height: 58px;
+            flex: 1;
+            max-width: 40px;
+            min-width: 32px;
+            height: 45px;
             border-radius: 4px;
             background: var(--key-bg);
             color: var(--key-color);
             border: none;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             transition: all 0.2s ease;
             cursor: pointer;
             text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         #virtual-keyboard button:hover:not(.key-disabled) {
@@ -87,14 +94,16 @@
 
         /* Special keys */
         #virtual-keyboard button[data-key="ENTER"] {
-            min-width: 80px;
-            font-size: 0.8rem;
+            flex: 1.5;
+            max-width: 65px;
+            font-size: 0.7rem;
             background: #818384;
         }
 
         #virtual-keyboard button[data-key="⌫"] {
-            min-width: 80px;
-            font-size: 1.2rem;
+            flex: 1.5;
+            max-width: 65px;
+            font-size: 1.1rem;
             background: #818384;
         }
 
@@ -119,25 +128,54 @@
             margin-bottom: 15px;
         }
 
-        @media (max-width: 400px) {
+        @media (max-width: 480px) {
             #virtual-keyboard {
-                padding: 0.75rem 0.25rem;
+                padding: 8px 4px 6px 4px;
             }
 
             #virtual-keyboard button {
-                min-width: 36px;
-                height: 48px;
-                font-size: 0.8rem;
+                max-width: 35px;
+                min-width: 28px;
+                height: 40px;
+                font-size: 0.75rem;
             }
 
             #virtual-keyboard .vk-row {
-                gap: 0.2rem;
-                margin-bottom: 0.3rem;
+                gap: 3px;
+                margin-bottom: 4px;
             }
 
             #virtual-keyboard button[data-key="ENTER"],
             #virtual-keyboard button[data-key="⌫"] {
-                min-width: 60px;
+                max-width: 55px;
+                font-size: 0.65rem;
+            }
+
+            #virtual-keyboard button[data-key="⌫"] {
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 360px) {
+            #virtual-keyboard button {
+                max-width: 30px;
+                min-width: 25px;
+                height: 38px;
+                font-size: 0.7rem;
+            }
+
+            #virtual-keyboard .vk-row {
+                gap: 2px;
+            }
+
+            #virtual-keyboard button[data-key="ENTER"],
+            #virtual-keyboard button[data-key="⌫"] {
+                max-width: 50px;
+                font-size: 0.6rem;
+            }
+
+            #virtual-keyboard button[data-key="⌫"] {
+                font-size: 0.9rem;
             }
         }
     </style>
@@ -158,6 +196,17 @@
 
         <!-- Game Board -->
         <div class="game-board">
+            <!-- Difficulty Selection -->
+            <div class="difficulty-selection">
+                <label for="difficultySelect" class="difficulty-label">Difficulty:</label>
+                <select id="difficultySelect" class="difficulty-select">
+                    <option value="easy">Easy</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="hard">Hard</option>
+                    <option value="raw">RAW</option>
+                </select>
+            </div>
+
             <!-- Current input area -->
             <div class="current-input-area">
                 <input type="text" class="letter-input-box" id="letter1" maxlength="1" />
